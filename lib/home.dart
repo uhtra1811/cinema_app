@@ -1,55 +1,57 @@
+import 'package:cinema_app/filme.dart';
 import 'package:flutter/material.dart';
-import 'cinemas.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  const Home({Key? key});
 
   @override
   State<Home> createState() {
-    return HomePage();
+    return HomePageState();
   }
 }
 
-class HomePage extends State<Home> {
+class HomePageState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Cinema Por Menos'),
-        ),
-        body: GridView.count(
-          crossAxisCount: 2,
-          children: List.generate(6, (index) {
-            return Center(
-              child: Image(
-                image: AssetImage('assets/Rectangle_$index.png'),
+      appBar: AppBar(
+        title: const Text('Cinema Por Menos'),
+      ),
+      body: GridView.count(
+        crossAxisCount: 2,
+        children: List.generate(6, (index) {
+          return GestureDetector(
+            onTap: () => _navigateToMenu(index),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: Image(
+                  image: AssetImage('assets/filme_$index.png'),
+                  fit: BoxFit.cover,
                 ),
-            );
-          }),          
-        ),
-        bottomNavigationBar: NavigationBar(
-          destinations: <IconButton>[
-            IconButton(
-              tooltip: 'Pagina inicial',
-              icon: const Icon(Icons.home),
-              selectedIcon: const Icon(Icons.home_outlined),
-              onPressed: () => _homePage(context)),
-            IconButton(
-              tooltip: 'Cinemas',
-              icon: const Icon(Icons.movie),
-              selectedIcon: const Icon(Icons.movie_outlined),
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const CinemasWidget()));
-              },
+              ),
             ),
-            IconButton(
-              tooltip: 'Sobre',
-              icon: const Icon(Icons.menu),
-              selectedIcon: const Icon(Icons.menu_book_outlined),
-              onPressed: () => _sobre(context)),
-          ],
-        ),
-      );
+          );
+        }),
+      ),
+      bottomNavigationBar: NavigationBar(
+        destinations: <IconButton>[
+          IconButton(
+            tooltip: 'Pagina inicial',
+            icon: const Icon(Icons.home),
+            selectedIcon: const Icon(Icons.home_outlined),
+            onPressed: () => _homePage(context),
+          ),
+          IconButton(
+            tooltip: 'Sobre',
+            icon: const Icon(Icons.menu),
+            selectedIcon: const Icon(Icons.menu_book_outlined),
+            onPressed: () => _sobre(context),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _homePage(BuildContext context) {
@@ -107,6 +109,13 @@ class HomePage extends State<Home> {
           ],
         );
       },
+    );
+  }
+
+  void _navigateToMenu(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => FilmePage(filmeId: index)),
     );
   }
 }

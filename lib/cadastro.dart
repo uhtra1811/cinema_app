@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:cinema_app/login.dart';
 
 import 'package:http/http.dart' as http;
 
-class CadastroPage extends StatefulWidget{
+class CadastroPage extends StatefulWidget {
   const CadastroPage({Key? key}) : super(key: key);
 
   @override
@@ -15,14 +13,20 @@ class CadastroPage extends StatefulWidget{
 }
 
 class _CadastroPage extends State<CadastroPage> {
-  final _usernameController = TextEditingController();
-  final _datanascimentoController = TextEditingController();
-  final _cpfContrroller = TextEditingController();
   final _emailController = TextEditingController();
-  final _confirmacaoemailController = TextEditingController();
   final _senhaController = TextEditingController();
-  final _confirmacaosenhaController = TextEditingController();
-  
+  String _selectedPergunta =
+      'Qual é o nome do seu pet?'; // Variável para armazenar a pergunta selecionada
+  String _respostaRecuperacao = '';
+
+  final List<String> perguntas = [
+    'Qual é o nome do seu pet?',
+    'Qual é o seu time de futebol?',
+    'Qual é a sua cidade natal?',
+    'Qual é o seu melhor amigo?',
+    'Qual é o seu filme favorito?'
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,42 +41,10 @@ class _CadastroPage extends State<CadastroPage> {
               children: <Widget>[
                 const SizedBox(height: 12),
                 TextField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    filled: true,
-                    labelText: 'Nome',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _datanascimentoController,
-                  decoration: const InputDecoration(
-                    filled: true,
-                    labelText: 'Data de Nascimento',
-                  ),
-                ),
-               const SizedBox(height: 12),
-                TextField(
-                  controller: _cpfContrroller,
-                  decoration: const InputDecoration(
-                    filled: true,
-                    labelText: 'CPF',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
                   controller: _emailController,
                   decoration: const InputDecoration(
                     filled: true,
                     labelText: 'E-mail',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _confirmacaoemailController,
-                  decoration: const InputDecoration(
-                    filled: true,
-                    labelText: 'Confirmação do E-mail',
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -85,53 +57,99 @@ class _CadastroPage extends State<CadastroPage> {
                   obscureText: true,
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _confirmacaosenhaController,
+                DropdownButtonFormField<String>(
+                  value: _selectedPergunta,
                   decoration: const InputDecoration(
                     filled: true,
-                    labelText: 'Confirme a senha',
+                    labelText: 'Pergunta secreta',
                   ),
-                  obscureText: true,
+                  items: perguntas.map((pergunta) {
+                    return DropdownMenuItem<String>(
+                      value: pergunta,
+                      child: Text(pergunta),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedPergunta = value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  decoration: const InputDecoration(
+                    filled: true,
+                    labelText: 'Resposta para recuperar senha',
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _respostaRecuperacao = value;
+                    });
+                  },
                 ),
                 OverflowBar(
                   alignment: MainAxisAlignment.end,
                   children: <Widget>[
                     ElevatedButton(
-                      child: const Text('Entrar'),
+                      child: const Text('Cadastrar'),
                       onPressed: () {
                         cadastro();
-                        Navigator.push(
-                          context, MaterialPageRoute(
-                            builder: (context) => const LoginPage())
-                          );
                       },
                     ),
                     TextButton(
                       child: const Text('CANCEL'),
                       onPressed: () {
-                        _usernameController.clear();
-                        _datanascimentoController.clear();
-                        _cpfContrroller.clear();
                         _emailController.clear();
-                        _confirmacaoemailController.clear();
                         _senhaController.clear();
-                        _confirmacaosenhaController.clear();
-                      },)
+                      },
+                    )
                   ],
                 )
               ],
             )
           ],
-        )),
+        ),
+      ),
     );
   }
 
-  void cadastro() async {
-    final response = await http.post(
-      Uri.parse('http://10.0.2.2:8081/login'),
-      body: {'email': _usernameController.text, 'senha': _senhaController.text},
+  Future<void> cadastro() async {
+    var url = Uri.parse('http://192.168.100.162:8081/cadastro');
+    var response = await http.post(
+      url,
+      body: {
+        'email': _emailController.text,
+        'senha': _senhaController.text,
+        'pergunta': _selectedPergunta,
+        'resposta': _respostaRecuperacao
+      },
     );
-    print(jsonDecode(response.body));
+    if (response.body == "") {
+      _showMyDialog();
+    } else {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => const LoginPage()));
+    }
   }
 
+  Future<void> _showMyDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Usuário já existe!'),
+          content: const SingleChildScrollView(),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Tentar novamente'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
